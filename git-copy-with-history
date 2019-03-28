@@ -1,0 +1,152 @@
+#!/usr/bin/env sh
+
+PWD=$(pwd)
+temp_dir=$PWD/.temp
+starting_commit=$(git log -1 HEAD --pretty=%H)
+
+usage() {
+    echo "usage: git copy-with-history <source-directory> <destination-directory>"
+    echo
+    echo "Available flags are:"
+    echo "--help|-h: displays this message"
+    echo "--version|-v: display plugin version"
+    echo 
+}
+
+version() {
+    echo "copy-with-history git plugin v1.0.0"
+    echo
+}
+
+get_absolute_path() {
+    echo `cd $1; pwd`
+}
+
+get_repo_relative_path() {
+    dir=$(pwd)
+    cd $1
+    repo_root=$(git rev-parse --show-toplevel)
+    echo $(echo $1 | sed "s@${repo_root}/@@")
+    cd $dir
+}
+
+log_debug() {
+    echo "~~~"
+    echo ">>" $@
+    echo "~~~"
+}
+
+## Returns a range of commits from creation to latest on the current directory
+determine_folder_commit_range() {
+    magical_empty_repo_sha="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+
+    # load the first commit pased on the current directory
+    commit_range_first=$(git log --pretty=%H --reverse ./ | head -1)
+    
+    # load latest commit based on the directory
+    commit_range_end=$(git log -1 --pretty=%H -- ./)
+    
+    # In order to pull in the creation of the directory we need to move back one commit
+    commit_range_start=$(git log -2 --reverse --pretty=%H ${commit_range_first} | head -1)
+
+    # if the first commit in the directort is the first of the repo
+    # use the magical empty repo SHA
+    if [[ $commit_range_first == $commit_range_start ]]; then
+        log_debug "fall back to magical commit"
+        commit_range_start=magical_empty_repo_sha
+    fi
+
+    echo $commit_range_start"..."$commit_range_end
+}
+
+fix_patches_directories() {
+    source_relative=$(get_repo_relative_path $1)
+    destination_relative=$(get_repo_relative_path $2)
+    cd $temp_dir
+
+    find ./ -type f -exec sed -i "" "s@COMPARE_\([A|B]\)/${source_relative}@COMPARE_\1/${destination_relative}@g" {} \;
+    find ./ -type f -exec sed -i "" "s@rename from ${source_relative}@rename from ${destination_relative}@g" {} \;
+    find ./ -type f -exec sed -i "" "s@rename to ${source_relative}@rename to ${destination_relative}@g" {} \;
+
+    cd $PWD
+}
+
+main() {
+    if [ "$#" -lt 1 ]; then
+        usage; exit 1
+    fi
+
+    case $1 in
+        "-h"|"--help")
+            usage; exit 0
+            ;;
+        "-v"|"--version")
+            version; exit 0
+            ;;
+    esac
+
+    # TODO: add ability to skip the exit
+    if [[ $(git diff-index HEAD) ]]; then
+        echo "WARNING: Working directory is dirty, this may be weird"
+        exit 1
+    fi
+
+
+    if [ "$#" -ne 2 ]; then
+        echo "Incorrect number of arguments"
+        echo ""
+        exit 1
+    fi
+
+    source_path=$(get_absolute_path $1)
+
+    if [ ! -d $source_path ]; then
+        echo "Source path was not found:"
+        echo $source_path
+        echo ""
+        exit 1
+    fi
+
+    if [ -d $2 ]; then
+        echo "Destination path already exists."
+        echo $2
+        echo ""
+        exit 1
+    else 
+        mkdir -p $2
+        destination_path=$(get_absolute_path $2)
+    fi
+
+    cd $source_path
+
+    commit_range=$(determine_folder_commit_range)
+
+    # create patches for the commit range of the source directory
+    git format-patch $commit_range \
+        --output-directory $temp_dir \
+        --src-prefix=COMPARE_A/ \
+        --dst-prefix=COMPARE_B/ \
+        --quiet \
+        -- ./
+
+    # update patches to use destination path instead of source paths
+    fix_patches_directories $source_path $destination_path
+
+    # apply all of the patches from the temp directory
+    git am $temp_dir/*
+
+    echo ""
+    echo "In case there are any issues you can run the following command to revert:"
+    echo ">> $ git reset --hard ${starting_commit}"
+    echo ""
+    
+    # reset us back to the working starting directory (just in case)
+    cd $PWD
+
+    # clean temp dir
+    rm -rf $PORT_TEMP_DIR
+}
+
+main "$@"
+
+
