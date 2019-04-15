@@ -19,4 +19,4 @@ The paths can be absolute or relative.
 
 ## Further Reading
 
-- [How it works](./how-it-works.md) - Goes into the process of finding this solution
+- [How it works](How-It-Works.md) - Goes into the process of finding this solution
