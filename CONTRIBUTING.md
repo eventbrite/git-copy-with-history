@@ -1,7 +1,8 @@
 # Contributing
 
 ## How to develop with the script
-After upates to the script you will need to run the `make install` command to override your local copy with the latest. 
+
+After updates to the script you will need to run the `make install` command to override your local copy with the latest. 
 
 Beyond that, I have just continued to run the plugin over and over until it does what I want. 
 

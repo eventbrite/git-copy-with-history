@@ -8,29 +8,29 @@ The patches are created using `git format-patch` and stored in `.temp` directory
 ---
 ---
 
-# Warning below be dragons
+## Warning below be dragons
 
 From this point on, I am documenting how I came up with this approach and what other things I ran into or attempted along the way.
 
-## Special considerations
+### Special considerations
 
-### Original Concept
+#### Original Concept
 
-My first attempt of this was to clone a temp version of the repo, then use `git filter-branch --subdirectory-filter` to set the source directory as the root of the repo.
+My first attempt of this was to clone a temp version of the repository, then use `git filter-branch --subdirectory-filter` to set the source directory as the root of the repository.
 
-Then I was able add the temp repo as a remote for the destination repo. Then using `git pull temp-repo master --allow-unrelated-histories`. This was able to properly pull the files into the repo with history, but using the hold file paths.
+Then I was able add the temp repository as a remote for the destination repository. Then using `git pull temp-repo master --allow-unrelated-histories`. This was able to properly pull the files into the repository with history, but using the hold file paths.
 
-I attempted to move the files into the correct folder sturcture for the destination. However, every attempt to move the file was losing the history of the files either immediately or when it was pulled into the new repo.
+I attempted to move the files into the correct folder structure for the destination. However, every attempt to move the file was losing the history of the files either immediately or when it was pulled into the new repository.
 
 Additionally, since this required a clone it took far too long to be sustainable.
 
-### Other Attempts
+#### Other Attempts
 
 I played around with a few other features in `git filter-branch` to attempt to re-write and move the files using the `--index-filter` flag, but this turned out to be too confusing and convoluted to work. It was also requiring a separate clone which as stated above was slow and the actions needed to perform were too dangerous to run in the already cloned copy.
 
-### Lerna Approach
+#### Lerna Approach
 
-The final approach and working solution was to emulate was Lerna was doing to [import packages into mono repos](https://github.com/lerna/lerna/blob/a7ad9b60d27b390fde21fd2837f2d97320c4603e/commands/import/index.js#L163-L171). Reviewing their import command led me to find `git format-patch` to pull the collections of patches necessary to re-create the files.
+The final approach and working solution was to emulate was Lerna was doing to [import packages into mono repository](https://github.com/lerna/lerna/blob/a7ad9b60d27b390fde21fd2837f2d97320c4603e/commands/import/index.js#L163-L171). Reviewing their import command led me to find `git format-patch` to pull the collections of patches necessary to re-create the files.
 To avoid creating any files outside the source directory I appended it to the command.
 Also since the repo could be fairly large I pull the commit history of the directory to only pull patches for range of commits from creation (minus one to include the patch that created the files) to latest. To handle cases where the creation of the directory was the first commit in the repo, I fall back to a special sha that git uses to indicate the empty repo (`4b825dc642cb6eb9a060e54bf8d69288fbee4904`, thanks Jamie!).
 

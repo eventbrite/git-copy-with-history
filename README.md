@@ -4,7 +4,7 @@ A git plugin that will copy a directory to a new location with each files commit
 
 ## Installation
 
-```
+```sh
 git clone https://github.com/kwelch-eb/git-copy-with-history.git
 make install
 ```
