@@ -15,7 +15,7 @@ usage() {
 }
 
 version() {
-    echo "copy-with-history git plugin v1.0.0"
+    echo "copy-with-history git plugin v1.1.0"
     echo
 }
 
