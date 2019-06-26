@@ -1,4 +1,5 @@
-#!/usr/bin/env sh
+#!/bin/bash
+set -e
 
 PWD=$(pwd)
 temp_dir=$PWD/.temp
@@ -19,20 +20,24 @@ version() {
 }
 
 get_absolute_path() {
-    echo `cd $1; pwd`
+    echo "cd $1; pwd"
 }
 
 get_repo_relative_path() {
     dir=$(pwd)
-    cd $1
+    cd "$1"
     repo_root=$(git rev-parse --show-toplevel)
-    echo $(echo $1 | sed "s@${repo_root}/@@")
-    cd $dir
+    if [ "$repo_root" = "$1" ]; then
+        echo ""
+    else
+        echo "$1" | sed "s@${repo_root}/@@"
+    fi
+    cd "$dir"
 }
 
 log_debug() {
     echo "~~~"
-    echo ">>" $@
+    echo ">> $*"
     echo "~~~"
 }
 
@@ -47,28 +52,34 @@ determine_folder_commit_range() {
     commit_range_end=$(git log -1 --pretty=%H -- ./)
     
     # In order to pull in the creation of the directory we need to move back one commit
-    commit_range_start=$(git log -2 --reverse --pretty=%H ${commit_range_first} | head -1)
+    commit_range_start=$(git log -2 --reverse --pretty=%H "${commit_range_first}" | head -1)
 
     # if the first commit in the directort is the first of the repo
     # use the magical empty repo SHA
-    if [[ $commit_range_first == $commit_range_start ]]; then
+    if [[ "$commit_range_first" == "$commit_range_start" ]]; then
         log_debug "fall back to magical commit"
-        commit_range_start=magical_empty_repo_sha
+        commit_range_start=$magical_empty_repo_sha
     fi
 
-    echo $commit_range_start"..."$commit_range_end
+    echo "${commit_range_start}...${commit_range_end}"
 }
 
 fix_patches_directories() {
-    source_relative=$(get_repo_relative_path $1)
-    destination_relative=$(get_repo_relative_path $2)
-    cd $temp_dir
+    source_relative=$(get_repo_relative_path "$1")
+    destination_relative=$(get_repo_relative_path "$2")
+
+    if [ "$source_relative" = "" ]; then
+        # append a trailing slash to avoid issues when running on root of a dir
+        destination_relative="$destination_relative/"
+    fi
+
+    cd "$temp_dir"
 
     find ./ -type f -exec sed -i "" "s@COMPARE_\([A|B]\)/${source_relative}@COMPARE_\1/${destination_relative}@g" {} \;
     find ./ -type f -exec sed -i "" "s@rename from ${source_relative}@rename from ${destination_relative}@g" {} \;
     find ./ -type f -exec sed -i "" "s@rename to ${source_relative}@rename to ${destination_relative}@g" {} \;
 
-    cd $PWD
+    cd "$PWD"
 }
 
 main() {
@@ -88,7 +99,12 @@ main() {
     # TODO: add ability to skip the exit
     if [[ $(git diff-index HEAD) ]]; then
         echo "WARNING: Working directory is dirty, this may be weird"
-        exit 1
+        read -p "Do you want to continue? (y|N) " -n 1 -r
+        echo -e "\n"
+
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
 
 
@@ -98,11 +114,11 @@ main() {
         exit 1
     fi
 
-    source_path=$(get_absolute_path $1)
+    source_path=$(get_absolute_path "$1")
 
-    if [ ! -d $source_path ]; then
+    if [ ! -d "$source_path" ]; then
         echo "Source path was not found:"
-        echo $source_path
+        echo "$source_path"
         echo ""
         exit 1
     fi
@@ -117,23 +133,23 @@ main() {
         destination_path=$(get_absolute_path $2)
     fi
 
-    cd $source_path
+    cd "$source_path"
 
     commit_range=$(determine_folder_commit_range)
 
     # create patches for the commit range of the source directory
-    git format-patch $commit_range \
-        --output-directory $temp_dir \
+    git format-patch "$commit_range" \
+        --output-directory "$temp_dir" \
         --src-prefix=COMPARE_A/ \
         --dst-prefix=COMPARE_B/ \
         --quiet \
         -- ./
 
     # update patches to use destination path instead of source paths
-    fix_patches_directories $source_path $destination_path
+    fix_patches_directories "$source_path" "$destination_path"
 
     # apply all of the patches from the temp directory
-    git am $temp_dir/*
+    git am "$temp_dir"/*
 
     echo ""
     echo "In case there are any issues you can run the following command to revert:"
@@ -141,10 +157,10 @@ main() {
     echo ""
     
     # reset us back to the working starting directory (just in case)
-    cd $PWD
+    cd "$PWD"
 
     # clean temp dir
-    rm -rf $PORT_TEMP_DIR
+    rm -rf "$PORT_TEMP_DIR"
 }
 
 main "$@"
