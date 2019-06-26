@@ -15,8 +15,7 @@ usage() {
 }
 
 version() {
-    echo "copy-with-history git plugin v1.1.0"
-    echo
+    echo "v1.1.0"
 }
 
 get_absolute_path() {
