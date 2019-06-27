@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.1.0
+## 1.1.1
+
+- [72e3280](https://github.com/kwelch-eb/git-copy-with-history/commit/72e3280fd0ddab0a4f02e4fb343137c45c439a04)Fix bug in get absolutely path
+
+## [1.1.0](https://github.com/kwelch-eb/git-copy-with-history/commit/8eb46b0076f51815ae22483fc945ba9736f4baeb)
 
 - [1a2677d](https://github.com/kwelch-eb/git-copy-with-history/commit/1a2677d5a5c6d0abb6a32661b0c7963c30a86a9a)Updated to work for copying root repository into a folder of a another repository
 
