@@ -2,7 +2,7 @@
 set -e
 
 PWD=$(pwd)
-temp_dir=$PWD/.temp
+temp_dir=$(mktemp -d)
 starting_commit=$(git log -1 HEAD --pretty=%H)
 
 usage() {
@@ -153,9 +153,6 @@ main() {
     
     # reset us back to the working starting directory (just in case)
     cd "$PWD"
-
-    # clean temp dir
-    rm -rf "$PORT_TEMP_DIR"
 }
 
 main "$@"
