@@ -118,13 +118,13 @@ main() {
         exit 1
     fi
 
-    if [ -d $2 ]; then
+    if [ -d "$2" ]; then
         echo "Destination path already exists."
-        echo $2
+        echo "$2"
         echo ""
         exit 1
     else 
-        mkdir -p $2
+        mkdir -p "$2"
         destination_path=$(cd "$2"; pwd)
     fi
 
@@ -143,6 +143,7 @@ main() {
     # update patches to use destination path instead of source paths
     fix_patches_directories "$source_path" "$destination_path"
 
+    cd "$destination_path"
     # apply all of the patches from the temp directory
     git am "$temp_dir"/*
 
