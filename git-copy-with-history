@@ -18,10 +18,6 @@ version() {
     echo "v1.1.0"
 }
 
-get_absolute_path() {
-    echo "cd $1; pwd"
-}
-
 get_repo_relative_path() {
     dir=$(pwd)
     cd "$1"
@@ -113,7 +109,7 @@ main() {
         exit 1
     fi
 
-    source_path=$(get_absolute_path "$1")
+    source_path=$(cd "$1"; pwd)
 
     if [ ! -d "$source_path" ]; then
         echo "Source path was not found:"
@@ -129,7 +125,7 @@ main() {
         exit 1
     else 
         mkdir -p $2
-        destination_path=$(get_absolute_path $2)
+        destination_path=$(cd "$2"; pwd)
     fi
 
     cd "$source_path"
