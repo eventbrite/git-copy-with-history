@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- Update to use system temp dir instead of custom in current working directory
+
 ## 1.1.1
 
 - [72e3280](https://github.com/kwelch-eb/git-copy-with-history/commit/72e3280fd0ddab0a4f02e4fb343137c45c439a04)Fix bug in get absolutely path
