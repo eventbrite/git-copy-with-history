@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.3
+
+- Moved away from `git-am` to `git-apply` and run each patch individually
+  (This caused issues when copying a directory with a large
+  commit history)
+
 ## 1.1.2
 
 - Update to use system temp dir instead of custom in current working directory
