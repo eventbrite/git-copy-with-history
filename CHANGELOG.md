@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4
+
+- Switch back to `git-am` since `git-apply` does not commit. Leaving the loop in place
+
 ## 1.1.3
 
 - Moved away from `git-am` to `git-apply` and run each patch individually

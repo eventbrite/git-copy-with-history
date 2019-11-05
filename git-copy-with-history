@@ -15,7 +15,7 @@ usage() {
 }
 
 version() {
-    echo "v1.1.3"
+    echo "v1.1.4"
 }
 
 get_repo_relative_path() {
@@ -147,7 +147,7 @@ main() {
     # apply all of the patches from the temp directory
     files="$temp_dir/*"
     for file in $files; do
-        git apply "$file"
+        git am "$file"
     done
 
     echo ""
