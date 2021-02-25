@@ -30,12 +30,6 @@ get_repo_relative_path() {
     cd "$dir"
 }
 
-log_debug() {
-    echo "~~~"
-    echo ">> $*"
-    echo "~~~"
-}
-
 ## Returns a range of commits from creation to latest on the current directory
 determine_folder_commit_range() {
     magical_empty_repo_sha="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
@@ -52,11 +46,12 @@ determine_folder_commit_range() {
     # if the first commit in the directort is the first of the repo
     # use the magical empty repo SHA
     if [[ "$commit_range_first" == "$commit_range_start" ]]; then
-        log_debug "fall back to magical commit"
         commit_range_start=$magical_empty_repo_sha
+        # when usiing the magic commit, it needs to be 2 dots instead of three
+        echo "${commit_range_start}..${commit_range_end}"
+    else
+        echo "${commit_range_start}...${commit_range_end}"
     fi
-
-    echo "${commit_range_start}...${commit_range_end}"
 }
 
 fix_patches_directories() {
