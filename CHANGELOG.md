@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Fixed issue where attempting to copy a directory that was created in the repository's first commit
+
 ## 1.1.4
 
 - Switch back to `git-am` since `git-apply` does not commit. Leaving the loop in place

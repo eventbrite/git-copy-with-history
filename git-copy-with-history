@@ -15,7 +15,7 @@ usage() {
 }
 
 version() {
-    echo "v1.1.4"
+    echo "v1.2.0"
 }
 
 get_repo_relative_path() {
